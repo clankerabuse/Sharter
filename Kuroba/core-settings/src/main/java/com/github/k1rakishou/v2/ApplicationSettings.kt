@@ -210,7 +210,8 @@ class ApplicationSettings(
     createEnumSetting<BoardPostViewMode>(
       clazz = BoardPostViewMode::class.java,
       key = KurobaSettingKey.Application.BoardPostViewMode,
-      default = BoardPostViewMode.List
+      // Grid so OP images are visible in the catalog without opening each thread.
+      default = BoardPostViewMode.Grid
     )
   }
   val boardOrder by lazy {
@@ -349,7 +350,8 @@ class ApplicationSettings(
     createBooleanSetting(KurobaSettingKey.Application.PrefetchMedia, false)
   }
   val highResCells by lazy {
-    createBooleanSetting(KurobaSettingKey.Application.HighResCells, false)
+    // Prefer full /src/ media for catalog cards when thumbs fail or look sparse.
+    createBooleanSetting(KurobaSettingKey.Application.HighResCells, true)
   }
   val useMpvVideoPlayer by lazy {
     createBooleanSetting(KurobaSettingKey.Application.UseMpvVideoPlayer, false)
