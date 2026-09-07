@@ -145,8 +145,9 @@ class ThumbnailMediaView @JvmOverloads constructor(
       override fun onNotFound() {
         requestDisposable = null
 
-        setError(getString(R.string.image_not_found))
-        onThumbnailImageNotFoundError()
+        // Placeholder only — the full /src/ file often still exists. Don't toast; let
+        // the original media load (catalog used to request the wrong thumb extension).
+        Logger.e(TAG, "onThumbnailImageNotFoundError()")
         onThumbnailFullyLoaded()
       }
 
@@ -168,14 +169,6 @@ class ThumbnailMediaView @JvmOverloads constructor(
       listener = listener,
       postDescriptor = postDescriptor
     )
-  }
-
-  private fun onThumbnailImageNotFoundError() {
-    Logger.e(TAG, "onThumbnailImageNotFoundError()")
-
-    if (currentlyVisible) {
-      snackbarManager.toast(messageId = R.string.image_not_found)
-    }
   }
 
   private fun onThumbnailImageError(exception: Throwable) {

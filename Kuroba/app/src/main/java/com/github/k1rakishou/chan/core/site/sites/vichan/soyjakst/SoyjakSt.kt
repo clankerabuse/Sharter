@@ -128,5 +128,47 @@ class SoyjakSt : BaseVichanSite(
         else -> ".png"
       }
     }
+
+    fun isThumbnailUrl(url: HttpUrl): Boolean {
+      val host = url.host.removePrefix("www.")
+      if (host != "soyjak.st" && host != "soyjak.party") {
+        return false
+      }
+
+      val segments = url.pathSegments
+      return segments.size >= 2 && segments[segments.lastIndex - 1] == "thumb"
+    }
+
+    /**
+     * Thumbs are mixed: newer posts are `{tim}.webp`, older/small copies keep the original ext.
+     * Cached posts may still have a `.png` thumb URL from before the webp mapping.
+     */
+    fun alternateThumbnailUrls(url: HttpUrl): List<HttpUrl> {
+      if (!isThumbnailUrl(url)) {
+        return emptyList()
+      }
+
+      val filename = url.pathSegments.last()
+      val dot = filename.lastIndexOf('.')
+      if (dot <= 0) {
+        return emptyList()
+      }
+
+      val stem = filename.substring(0, dot)
+      val ext = filename.substring(dot + 1).lowercase()
+      val fallbacks = when (ext) {
+        "webp" -> listOf("png", "jpg", "jpeg", "gif")
+        "png", "jpg", "jpeg", "gif" -> listOf("webp")
+        else -> listOf("webp", "png", "jpg")
+      }
+
+      val lastIndex = url.pathSegments.lastIndex
+      return fallbacks.map { newExt ->
+        url.newBuilder()
+          .removePathSegment(lastIndex)
+          .addPathSegment("$stem.$newExt")
+          .build()
+      }
+    }
   }
 }
