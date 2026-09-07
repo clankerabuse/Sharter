@@ -1,114 +1,57 @@
+# Sharter
 
-# Kuroba Experimental
+Android client for **[soyjak.st](https://soyjak.st)** (the sharty), forked from [Kuroba-Experimental](https://github.com/K1rakishou/Kuroba-Experimental).
 
-### [Latest stable release](https://github.com/K1rakishou/Kuroba-Experimental/releases/latest)
+This app is **soyjak.st-only** — other imageboards are not included.
 
-### [Latest beta version](https://github.com/K1rakishou/Kuroba-Experimental-beta/releases/latest)
+## Features (browse MVP)
 
-KurobaEx is a fast Android app for browsing imageboards, such as 4chan and 8chan. It's a fork of Kuroba. This fork provides lots of new features:
+- Board list, catalog, thread view, media viewer
+- Cloudflare challenge handling (WebView clearance cookies → OkHttp)
+- Deep links: `https://soyjak.st/{board}/thread/{no}.html`
+- Legacy host alias: `soyjak.party`
 
-- New technological stack (Kotlin, RxJava/Coroutines, Room etc).
+## Not yet
 
-- On demand content loading (includes prefetching, youtube videos titles and durations fetching, inlined files size fetching etc).
+- Posting / captcha / reply composer (`POST /post.php`)
+- Bookmarks polish, archives, soybooru
 
-- Third-party archives support.
+## Build
 
-- New thread navigation (tabs).
+Open the `Kuroba/` directory in Android Studio (wait for SDK platform install to finish if Studio is still downloading components).
 
-- New in-app navigation (bottom nav bar).
+```bash
+cd Kuroba
+# Requires Android SDK (local.properties with sdk.dir — already points at ~/Android/Sdk)
+./gradlew :app:assembleDebug -PbuildType=2
+```
 
-- New bookmarks (they were fully rewritten from scratch, now use way less memory, don't use wakelocks, show separate notifications per thread (and notifications can be swiped away).
+`buildType`: `0` = Stable, `1` = Beta, `2` = Dev (default in `gradle.properties`).
 
-- Edge-to-edge theme support.
+Application id: `com.sharter.android`
 
-- New database.
+## Cloudflare
 
-- 4chan global search support.
+soyjak.st is behind Cloudflare. Sharter reuses Kuroba’s `CloudFlareInterceptor` + WebView bypass:
 
-- Fully dynamic themes with Android Q Day/Night mode support.
+1. First catalog/thread request may get a 403 challenge page.
+2. App opens a WebView to pass the check and stores `cf_clearance` (and related) cookies.
+3. OkHttp retries with those cookies; JSON should parse after that.
 
-- Per-site proxies.
+If catalog fails with “malformed JSON”, the response is still HTML — re-trigger the CF screen (or clear site cookies in site settings) and try again.
 
-- Ability to attach multiple media files to reply, attach media files that was shared by external apps (even by some keyboards), attach remote media files by URL, etc.
+## API notes
 
-- New image downloader. Allows downloading images while the app is in background, retrying failed to download images, resolving duplicates, etc. 
+soyjak.st runs Vichan with 4chan-compatible JSON:
 
-- New posting. Posting code was moved into a foreground service which now allows stuff like using automatic captcha solvers (2captcha API) seamlessly or queueing multiple replies in different threads (only one reply per thread).
+| Purpose | URL |
+|--------|-----|
+| Catalog | `/{board}/catalog.json` |
+| Thread | `/{board}/thread/{no}.json` |
+| Media | `/{board}/src/{tim}{ext}` |
 
-- New Media Viewer. It was rewritten from scratch and now lives in a separate activity. It now also supports stuff like viewing links to media files shared into the app.
-
-- Thread downloader with ability to export threads as HTML pages with all downloaded media.
-
-- Composite catalogs (ability to combine multiple boards of any available sites (except archives) together into a single catalog).
-
-- Mpv video player (downloadable).
-
-- Bookmark groups with ability to setup regex matchers to automatically move newly created bookmarks into them.
-
-- ~~Automatic captcha solver for 4chan captcha (See https://github.com/K1rakishou/4chanCaptchaSolver)~~
-
-- Lots of other tiny improvements.
-
-### Screenshots:
-
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/1.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/2.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/4.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/6.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/7.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/8.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/9.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/9.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/10.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/10.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/11.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/11.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/12.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/12.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/13.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/13.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/14.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/14.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/15.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/15.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/16.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/16.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/17.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/17.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/18.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/18.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/19.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/19.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/20.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/20.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/21.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/21.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/22.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/22.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/23.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/23.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/24.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/24.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/25.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/25.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/26.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/26.png)
-
-##### Currently supported sites
-- 4Chan
-- Dvach
-- 8Kun (thanks to @jirn073-76)
-- Lainchan
-- Sushichan
-- Wired-7 (thanks to @Wired-7)
-- 370chan.info (thanks to @alcharkov)
-- Endchan
-- Kohlchan
-- Krautchan
-- 8chan.moe
-- Lefypol (thanks to @yuiopmbv)
-- Diochan (thanks to @Dashchanon)
-- ~~420Chan (thanks to @Lolzen)~~
-- ~~YesHoney (thanks to @SomeGuy719)~~
-- ~~Vhschan (thanks to @MrPurple666)~~
-- ~~Soyjak.party (thanks to @absurd-shaman)~~
-
-##### Currently supported 4chan archives
-- ArchivedMoe
-- ArchiveOfSins
-- B4k
-- DesuArchive
-- Fireden 
-- 4Plebs 
-- Warosu
-- ~~Nyafuu~~
-- ~~TokyoChronos~~
-- ~~Wakarimasen.moe~~
-- ~~RozenArcana~~
+Site adapter: `Kuroba/app/src/main/java/.../sites/vichan/soyjakst/SoyjakSt.kt`
 
 ## License
-[Kuroba is GPLv3](https://github.com/K1rakishou/Kuroba-Experimental/blob/develop/COPYING.txt), [licenses of the used libraries.](https://github.com/K1rakishou/Kuroba-Experimental/blob/develop/Kuroba/app/src/main/assets/html/licenses.html)
+
+GPLv3 (inherited from Kuroba-Experimental). See [COPYING.txt](COPYING.txt).

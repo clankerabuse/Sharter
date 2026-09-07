@@ -15,6 +15,7 @@ import com.github.k1rakishou.chan.core.manager.ChanThreadViewableInfoManager
 import com.github.k1rakishou.chan.core.manager.CompositeCatalogManager
 import com.github.k1rakishou.chan.core.manager.HistoryNavigationManager
 import com.github.k1rakishou.chan.core.manager.SiteManager
+import com.github.k1rakishou.chan.core.site.Site
 import com.github.k1rakishou.chan.core.site.SiteConfiguration
 import com.github.k1rakishou.chan.core.site.SiteResolver
 import com.github.k1rakishou.chan.core.site.sites.CompositeCatalogSite
@@ -35,6 +36,7 @@ import com.github.k1rakishou.model.data.descriptor.PostDescriptor
 import com.github.k1rakishou.model.data.descriptor.PostDescriptorParcelable
 import com.github.k1rakishou.v2.KurobaSettings
 import dagger.Lazy
+import kotlinx.coroutines.flow.collect
 
 
 class StartActivityStartupHandlerHelper(
@@ -123,6 +125,10 @@ class StartActivityStartupHandlerHelper(
   private suspend fun restoreFresh() {
     Logger.d(TAG, "restoreFresh()")
     siteManager.awaitUntilInitialized()
+    boardManager.awaitUntilInitialized()
+
+    // Sharter: ensure static boards are persisted/activated on first launch
+    ensureShartyBoardsLoaded()
 
     if (!siteManager.areSitesSetup()) {
       Logger.d(TAG, "restoreFresh() Sites are not setup, showSitesNotSetup()")
@@ -157,6 +163,26 @@ class StartActivityStartupHandlerHelper(
           threadDescriptor = threadToOpen,
           animated = false
         )
+      }
+    }
+  }
+
+  private suspend fun ensureShartyBoardsLoaded() {
+    val sitesNeedingBoards = mutableListOf<Site>()
+
+    siteManager.viewActiveSitesOrderedWhile { _, site ->
+      if (boardManager.activeBoardsCount(site.descriptor) <= 0) {
+        sitesNeedingBoards += site
+      }
+      true
+    }
+
+    for (site in sitesNeedingBoards) {
+      try {
+        site.actions.loadBoardInfo().collect { }
+        Logger.d(TAG, "ensureShartyBoardsLoaded() loaded boards for ${site.name}")
+      } catch (error: Throwable) {
+        Logger.e(TAG, "ensureShartyBoardsLoaded() failed for ${site.name}", error)
       }
     }
   }

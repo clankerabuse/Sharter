@@ -9,10 +9,10 @@ import com.github.k1rakishou.chan.core.manager.update.KurobaAppUpdateManager
 import com.github.k1rakishou.chan.features.changelog.ChangelogController
 import com.github.k1rakishou.chan.features.filters.FiltersController
 import com.github.k1rakishou.chan.features.report.bugs.ReportIssueController
+import com.github.k1rakishou.chan.features.settings.AppSettingsController
 import com.github.k1rakishou.chan.features.settings.SettingsScreen
 import com.github.k1rakishou.chan.features.settings.SettingsScreenKey
 import com.github.k1rakishou.chan.features.settings.setting.SettingUiElement
-import com.github.k1rakishou.chan.features.setup.site.setup.SitesSetupController
 import com.github.k1rakishou.chan.ui.controller.LicensesController
 import com.github.k1rakishou.chan.ui.helper.AppResources
 import com.github.k1rakishou.chan.utils.AppModuleAndroidUtils
@@ -55,13 +55,21 @@ class MainSettingsScreenBuilder(
 
       addSetting(
         SettingUiElement.Link(
-          composeKey = "SitesSetup",
+          composeKey = "SiteSettings",
           title = { appResources.string(R.string.settings_sites) },
-          description = {
-            val sitesCount = siteManager.activeSiteCount()
-            appResources.quantityString(R.plurals.site, sitesCount, sitesCount)
-          },
-          callback = { settingActions.pushController(SitesSetupController(context)) }
+          description = { "soyjak.st" },
+          callback = {
+            siteManager.firstSiteDescriptor()?.let { siteDescriptor ->
+              settingActions.pushController(
+                AppSettingsController(
+                  context = context,
+                  params = AppSettingsController.Params.createForInitialScreen(
+                    screenKey = SettingsScreenKey.Site(siteDescriptor)
+                  )
+                )
+              )
+            }
+          }
         )
       )
 

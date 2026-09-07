@@ -21,7 +21,6 @@ import com.github.k1rakishou.chan.features.drawer.MainControllerCallbacks
 import com.github.k1rakishou.chan.features.settings.AppSettingsController
 import com.github.k1rakishou.chan.features.settings.SettingsScreenKey
 import com.github.k1rakishou.chan.features.setup.boards.selection.BoardSelectionController
-import com.github.k1rakishou.chan.features.setup.site.setup.SitesSetupController
 import com.github.k1rakishou.chan.features.toolbar.HamburgMenuItem
 import com.github.k1rakishou.chan.features.toolbar.KurobaToolbarState
 import com.github.k1rakishou.chan.features.toolbar.ToolbarMenuCheckableOverflowItem
@@ -707,7 +706,19 @@ class BrowseController(
       context = context,
       callback = object : BoardSelectionController.UserSelectionListener {
         override fun onOpenSitesSettingsClicked() {
-          pushChildController(SitesSetupController(context))
+          val siteDescriptor = siteManager.firstSiteDescriptor()
+          if (siteDescriptor == null) {
+            return
+          }
+
+          pushChildController(
+            AppSettingsController(
+              context = context,
+              params = AppSettingsController.Params.createForInitialScreen(
+                screenKey = SettingsScreenKey.Site(siteDescriptor)
+              )
+            )
+          )
         }
 
         override fun onSiteSelected(siteDescriptor: SiteDescriptor) {
@@ -754,11 +765,7 @@ class BrowseController(
         }
       ),
       onMainContentClick = {
-        if (!siteManager.areSitesSetup()) {
-          pushChildController(SitesSetupController(context))
-        } else {
-          openBoardSelectionController()
-        }
+        openBoardSelectionController()
       },
       menuBuilder = {
         withMenuItem(drawableId = R.drawable.ic_search_white_24dp, onClick = { item -> searchClicked(item) })

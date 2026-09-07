@@ -85,63 +85,10 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
 
-                <data android:host="4chan.org" />
-                <data android:host="www.4chan.org" />
-                <data android:host="boards.4chan.org" />
-
-                <data android:host="2ch.life" />
-                <data android:host="www.2ch.life" />
-
-                <data android:host="lainchan.org" />
-                <data android:host="www.lainchan.org" />
-
-                <data android:host="diochan.com" />
-                <data android:host="www.diochan.com" />
-
-                <data android:host="8kun.top" />
-                <data android:host="www.8kun.top" />
-
-                <data android:host="sushigirl.us" />
-                <data android:host="www.sushigirl.us" />
-
-                <data android:host="wired-7.org" />
-                <data android:host="www.wired-7.org" />
-
-                <data android:host="370ch.lt" />
-                <data android:host="www.370ch.lt" />
-
-                <data android:host="vhschan.org" />
-                <data android:host="www.vhschan.org" />
-
-                <data android:host="archived.moe" />
-                <data android:host="www.archived.moe" />
-
-                <data android:host="archiveofsins.com" />
-                <data android:host="www.archiveofsins.com" />
-
-                <data android:host="arch.b4k.dev" />
-                <data android:host="www.arch.b4k.dev" />
-
-                <data android:host="desuarchive.org" />
-                <data android:host="www.desuarchive.org" />
-
-                <data android:host="boards.fireden.net" />
-                <data android:host="www.boards.fireden.net" />
-
-                <data android:host="archive.4plebs.org" />
-                <data android:host="www.archive.4plebs.org" />
-
-                <data android:host="archive.nyafuu.org" />
-                <data android:host="www.archive.nyafuu.org" />
-
-                <data android:host="tokyochronos.net" />
-                <data android:host="www.tokyochronos.net" />
-
-                <data android:host="warosu.org" />
-                <data android:host="www.warosu.org" />
-
-                <data android:host="archive.wakarimasen.moe" />
-                <data android:host="www.archive.wakarimasen.moe" />
+                <data android:host="soyjak.st" />
+                <data android:host="www.soyjak.st" />
+                <data android:host="soyjak.party" />
+                <data android:host="www.soyjak.party" />
 
             </intent-filter>
         </activity>

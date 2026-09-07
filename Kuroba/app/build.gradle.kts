@@ -49,7 +49,7 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
 
-        applicationId = "com.github.k1rakishou.chan"
+        applicationId = "com.sharter.android"
         applicationIdSuffix = ""
         buildConfigField("String", "BUILD_TYPE", "\"${kurobaBuildType.name}\"")
         buildConfigField("String", "COMMIT_HASH", "\"${gitHashProvider.get()}\"")
@@ -58,15 +58,15 @@ android {
 
         when (kurobaBuildType) {
           KurobaBuildType.Stable -> {
-              manifestPlaceholders["appName"] = "KurobaEx"
+              manifestPlaceholders["appName"] = "Sharter"
               manifestPlaceholders["iconLoc"] = "@mipmap/ic_launcher_release"
           }
           KurobaBuildType.Beta -> {
-              manifestPlaceholders["appName"] = "KurobaEx-beta"
+              manifestPlaceholders["appName"] = "Sharter-beta"
               manifestPlaceholders["iconLoc"] = "@mipmap/ic_launcher_beta"
           }
           KurobaBuildType.Dev -> {
-              manifestPlaceholders["appName"] = "KurobaEx-dev"
+              manifestPlaceholders["appName"] = "Sharter-dev"
               manifestPlaceholders["iconLoc"] = "@mipmap/ic_launcher_dev"
           }
         }
@@ -163,7 +163,7 @@ android {
                 val abi = output.getFilter("ABI") ?: ""
 
                 output.outputFileName = buildString {
-                    append("KurobaEx")
+                    append("Sharter")
 
                     if (apkNameSuffix.isNotEmpty()) {
                         append("-")

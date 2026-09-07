@@ -51,8 +51,9 @@ abstract class ChanSiteDao {
 
     insertDefaultSiteIdsOrIgnore(chanSiteIdEntityList)
 
+    // Sharter: auto-activate sites on first install (single-site app)
     val defaultSites = allSiteDescriptors.mapIndexed { index, siteDescriptor ->
-      ChanSiteEntity(siteDescriptor.siteName, false, index)
+      ChanSiteEntity(siteDescriptor.siteName, true, index)
     }
 
     insertDefaultSitesOrIgnore(defaultSites)
