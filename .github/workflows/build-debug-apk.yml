@@ -7,6 +7,11 @@ on:
   push:
     branches: [ develop ]
 
+# Releases need write so the APK is a normal GitHub download, not an
+# Actions artifact zip (those 404 in the browser on private repos).
+permissions:
+  contents: write
+
 jobs:
   assemble-debug:
     runs-on: ubuntu-latest
@@ -33,12 +38,18 @@ jobs:
           chmod +x ./gradlew
           ./gradlew :app:assembleDebug -PbuildType=2 --stacktrace -Dorg.gradle.jvmargs="-Xmx4096m"
 
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+      - name: Publish debug APK release
+        if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
         with:
-          name: Sharter-dev-debug
-          path: |
-            Kuroba/app/build/outputs/apk/debug/Sharter-dev.apk
+          tag_name: debug-apk
+          name: Sharter debug APK
+          prerelease: true
+          make_latest: false
+          files: |
             Kuroba/app/build/outputs/apk/debug/Sharter-dev-arm64-v8a.apk
-          if-no-files-found: error
-          retention-days: 14
+            Kuroba/app/build/outputs/apk/debug/Sharter-dev.apk
+          body: |
+            Sideload **Sharter-dev-arm64-v8a.apk** on a modern phone.
+            `Sharter-dev.apk` is a universal fallback.
+            Debug-signed as `com.sharter.android`. Uninstall any other Sharter build first if install is blocked.
