@@ -63,15 +63,10 @@ class SoyjakSt : BaseVichanSite(
     ): HttpUrl {
       requireNotNull(arg)
 
-      val extension = when (arg["ext"]) {
-        "jpg", "jpeg", "gif", "webp" -> "." + arg["ext"]
-        "webm", "mp4" -> ".jpg"
-        else -> ".png"
-      }
       return root.builder()
         .s(boardDescriptor.boardCode)
         .s("thumb")
-        .s(arg["tim"] + extension)
+        .s(arg["tim"] + thumbnailFileExtension(arg["ext"]))
         .url()
     }
 
@@ -120,5 +115,60 @@ class SoyjakSt : BaseVichanSite(
 
   companion object {
     const val SITE_NAME: String = "soyjak.st"
+
+    /**
+     * soyjak.st re-encodes still-image thumbs as webp.
+     * Catalog HTML uses `/board/thumb/{tim}.webp` for png/jpg/gif/webp originals;
+     * `/board/src/{tim}.{ext}` stays the original file (so the media viewer works).
+     */
+    fun thumbnailFileExtension(originalExt: String?): String {
+      return when (originalExt?.lowercase()) {
+        "webm", "mp4" -> ".jpg"
+        "png", "jpg", "jpeg", "gif", "webp" -> ".webp"
+        else -> ".png"
+      }
+    }
+
+    fun isThumbnailUrl(url: HttpUrl): Boolean {
+      val host = url.host.removePrefix("www.")
+      if (host != "soyjak.st" && host != "soyjak.party") {
+        return false
+      }
+
+      val segments = url.pathSegments
+      return segments.size >= 2 && segments[segments.lastIndex - 1] == "thumb"
+    }
+
+    /**
+     * Thumbs are mixed: newer posts are `{tim}.webp`, older/small copies keep the original ext.
+     * Cached posts may still have a `.png` thumb URL from before the webp mapping.
+     */
+    fun alternateThumbnailUrls(url: HttpUrl): List<HttpUrl> {
+      if (!isThumbnailUrl(url)) {
+        return emptyList()
+      }
+
+      val filename = url.pathSegments.last()
+      val dot = filename.lastIndexOf('.')
+      if (dot <= 0) {
+        return emptyList()
+      }
+
+      val stem = filename.substring(0, dot)
+      val ext = filename.substring(dot + 1).lowercase()
+      val fallbacks = when (ext) {
+        "webp" -> listOf("png", "jpg", "jpeg", "gif")
+        "png", "jpg", "jpeg", "gif" -> listOf("webp")
+        else -> listOf("webp", "png", "jpg")
+      }
+
+      val lastIndex = url.pathSegments.lastIndex
+      return fallbacks.map { newExt ->
+        url.newBuilder()
+          .removePathSegment(lastIndex)
+          .addPathSegment("$stem.$newExt")
+          .build()
+      }
+    }
   }
 }

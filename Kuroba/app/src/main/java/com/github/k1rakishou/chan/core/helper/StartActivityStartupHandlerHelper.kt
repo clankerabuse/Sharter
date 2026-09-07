@@ -171,6 +171,10 @@ class StartActivityStartupHandlerHelper(
     val sitesNeedingBoards = mutableListOf<Site>()
 
     siteManager.viewActiveSitesOrderedWhile { _, site ->
+      if (site.hasSiteFeature(SiteConfiguration.SiteFeature.CatalogComposition)) {
+        return@viewActiveSitesOrderedWhile true
+      }
+
       if (boardManager.activeBoardsCount(site.descriptor) <= 0) {
         sitesNeedingBoards += site
       }
@@ -180,11 +184,29 @@ class StartActivityStartupHandlerHelper(
     for (site in sitesNeedingBoards) {
       try {
         site.actions.loadBoardInfo().collect { }
+        activateFetchedBoardsIfNoneActive(site)
         Logger.d(TAG, "ensureShartyBoardsLoaded() loaded boards for ${site.name}")
       } catch (error: Throwable) {
         Logger.e(TAG, "ensureShartyBoardsLoaded() failed for ${site.name}", error)
       }
     }
+  }
+
+  private suspend fun activateFetchedBoardsIfNoneActive(site: Site) {
+    if (boardManager.activeBoardsCount(site.descriptor) > 0) {
+      return
+    }
+
+    val boardDescriptors = boardManager.getAllBoardDescriptorsForSite(site.descriptor)
+    if (boardDescriptors.isEmpty()) {
+      return
+    }
+
+    boardManager.activateDeactivateBoards(
+      siteDescriptor = site.descriptor,
+      boardDescriptors = boardDescriptors,
+      activate = true
+    )
   }
 
   private suspend fun getThreadToOpen(): ChanDescriptor.ThreadDescriptor? {

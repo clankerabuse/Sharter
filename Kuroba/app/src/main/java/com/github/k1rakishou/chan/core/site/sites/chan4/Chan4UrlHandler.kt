@@ -12,6 +12,8 @@ class Chan4UrlHandler : SiteUrlHandler {
   private val hosts = setOf(
     "4chan.org",
     "boards.4chan.org",
+    "4channel.org",
+    "boards.4channel.org",
     "sys.4chan.org",
     "find.4chan.org",
     "a.4cdn.org",

@@ -11,6 +11,7 @@ import com.github.k1rakishou.chan.core.base.okhttp.ProxiedOkHttpClient
 import com.github.k1rakishou.chan.core.base.okhttp.ProxiedOkHttpClientImpl
 import com.github.k1rakishou.chan.core.base.okhttp.interceptor.Chan8MoeInterceptor
 import com.github.k1rakishou.chan.core.base.okhttp.interceptor.CloudFlareInterceptor
+import com.github.k1rakishou.chan.core.base.okhttp.interceptor.SoyjakStThumbFallbackInterceptor
 import com.github.k1rakishou.chan.core.base.okhttp.interceptor.HttpLoggingInterceptorLazy
 import com.github.k1rakishou.chan.core.base.okhttp.interceptor.KurobaOkHttpInterceptor
 import com.github.k1rakishou.chan.core.cache.CacheHandler
@@ -133,6 +134,13 @@ class NetModule {
       okHttpClient = okHttpClient,
       siteResolver = siteResolver
     )
+  }
+
+  @Provides
+  @IntoSet
+  fun provideSoyjakStThumbFallbackInterceptor(): KurobaOkHttpInterceptor {
+    deps("SoyjakStThumbFallbackInterceptor")
+    return SoyjakStThumbFallbackInterceptor()
   }
 
   /**
