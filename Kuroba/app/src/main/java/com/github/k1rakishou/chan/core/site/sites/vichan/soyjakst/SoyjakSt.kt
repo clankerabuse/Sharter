@@ -63,15 +63,10 @@ class SoyjakSt : BaseVichanSite(
     ): HttpUrl {
       requireNotNull(arg)
 
-      val extension = when (arg["ext"]) {
-        "jpg", "jpeg", "gif", "webp" -> "." + arg["ext"]
-        "webm", "mp4" -> ".jpg"
-        else -> ".png"
-      }
       return root.builder()
         .s(boardDescriptor.boardCode)
         .s("thumb")
-        .s(arg["tim"] + extension)
+        .s(arg["tim"] + thumbnailFileExtension(arg["ext"]))
         .url()
     }
 
@@ -120,5 +115,18 @@ class SoyjakSt : BaseVichanSite(
 
   companion object {
     const val SITE_NAME: String = "soyjak.st"
+
+    /**
+     * soyjak.st re-encodes still-image thumbs as webp.
+     * Catalog HTML uses `/board/thumb/{tim}.webp` for png/jpg/gif/webp originals;
+     * `/board/src/{tim}.{ext}` stays the original file (so the media viewer works).
+     */
+    fun thumbnailFileExtension(originalExt: String?): String {
+      return when (originalExt?.lowercase()) {
+        "webm", "mp4" -> ".jpg"
+        "png", "jpg", "jpeg", "gif", "webp" -> ".webp"
+        else -> ".png"
+      }
+    }
   }
 }
