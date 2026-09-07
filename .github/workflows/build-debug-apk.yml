@@ -1,0 +1,44 @@
+name: Build debug APK
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ develop ]
+  push:
+    branches: [ develop ]
+
+jobs:
+  assemble-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: tools platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Assemble debug APK
+        run: |
+          cd Kuroba
+          chmod +x ./gradlew
+          ./gradlew :app:assembleDebug -PbuildType=2 --stacktrace -Dorg.gradle.jvmargs="-Xmx4096m"
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sharter-dev-debug
+          path: |
+            Kuroba/app/build/outputs/apk/debug/Sharter-dev.apk
+            Kuroba/app/build/outputs/apk/debug/Sharter-dev-arm64-v8a.apk
+          if-no-files-found: error
+          retention-days: 14
