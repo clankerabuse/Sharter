@@ -50,6 +50,8 @@ soyjak.st runs Vichan with 4chan-compatible JSON:
 | Thread | `/{board}/thread/{no}.json` |
 | Media | `/{board}/src/{tim}{ext}` |
 
+Catalog/list previews intentionally load from `/src/` (downsampled) because `/thumb/` filenames are not reliably derivable from API `tim`/`ext` alone. Spoiler placeholder: `/static/spoiler.png`.
+
 Site adapter: `Kuroba/app/src/main/java/.../sites/vichan/soyjakst/SoyjakSt.kt`
 
 ## License

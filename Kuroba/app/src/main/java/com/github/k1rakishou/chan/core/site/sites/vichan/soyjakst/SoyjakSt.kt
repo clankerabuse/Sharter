@@ -63,16 +63,17 @@ class SoyjakSt : BaseVichanSite(
     ): HttpUrl {
       requireNotNull(arg)
 
-      val extension = when (arg["ext"]) {
-        "jpg", "jpeg", "gif", "webp" -> "." + arg["ext"]
-        "webm", "mp4" -> ".jpg"
-        else -> ".png"
+      if (spoiler) {
+        return root.builder()
+          .s("static")
+          .s("spoiler.png")
+          .url()
       }
-      return root.builder()
-        .s(boardDescriptor.boardCode)
-        .s("thumb")
-        .s(arg["tim"] + extension)
-        .url()
+
+      // soyjak.st thumb filenames are not always derivable as /thumb/{tim}.{ext}
+      // (random letter suffixes / webp variants). Full /src/ media already loads in the
+      // media viewer, so use that for in-list/catalog previews; Coil downsamples.
+      return imageUrl(boardDescriptor, arg)
     }
 
     override fun thread(
