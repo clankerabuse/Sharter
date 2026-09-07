@@ -8,15 +8,15 @@ on:
         type: string  # 'beta' or 'stable'
     secrets:
       KEYSTORE:
-        required: true
+        required: false
       KEYSTORE_PASSWORD:
-        required: true
+        required: false
       KEY_ALIAS:
-        required: true
+        required: false
       KEY_PASSWORD:
-        required: true
+        required: false
       PAT:
-        required: true
+        required: false
 
 jobs:
   build:
