@@ -2,7 +2,7 @@
 
 Android client for **[soyjak.st](https://soyjak.st)** (the sharty), forked from [Kuroba-Experimental](https://github.com/K1rakishou/Kuroba-Experimental).
 
-This app is **soyjak.st-only** — other imageboards are not included.
+Imageboards: **[soyjak.st](https://soyjak.st)** and **[4chan](https://4chan.org)**. Other Kuroba imageboards are not registered.
 
 ## Features (browse MVP)
 
@@ -10,10 +10,14 @@ This app is **soyjak.st-only** — other imageboards are not included.
 - Cloudflare challenge handling (WebView clearance cookies → OkHttp)
 - Deep links: `https://soyjak.st/{board}/thread/{no}.html`
 - Legacy host alias: `soyjak.party`
+- 4chan catalog/thread browsing (Kuroba's 4chan adapter)
+- Deep links: `https://boards.4chan.org/{board}/thread/{no}` and `4channel.org`
+
+On first launch (or first launch after this update), 4chan is enabled and its board list is fetched from `boards.json` so boards show up in the picker. Manage sites from **Settings → Sites**.
 
 ## Not yet
 
-- Posting / captcha / reply composer (`POST /post.php`)
+- soyjak.st posting / captcha / reply composer (`POST /post.php`)
 - Bookmarks polish, archives, soybooru
 
 ## Build
