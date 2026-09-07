@@ -31,13 +31,17 @@ This is not a general Kuroba rebuild. Only soyjak.st and 4chan are registered; l
 - soybooru
 - Other imageboards from upstream Kuroba
 
-## Sideload
+## Download
 
-A debug APK is kept on this branch:
+The APK is a **[GitHub Release](https://github.com/clankerabuse/Sharter/releases/tag/debug-apk)**, not a GitHub Package.
 
-[apk/Sharter-dev-arm64-v8a.apk](apk/Sharter-dev-arm64-v8a.apk) — use **Download raw file**.
+1. Open **[Releases](https://github.com/clankerabuse/Sharter/releases)** (log in if the repo is private).
+2. Download **`Sharter-dev-arm64-v8a.apk`** (phones). `Sharter-dev.apk` is a universal fallback.
+3. Sideload it. Uninstall an older `Sharter-dev` build if Android blocks the install (same application id, different signing).
 
-Uninstall an older `Sharter-dev` build if Android blocks the install (same application id, different signing).
+Each push to `develop` rebuilds that prerelease. You can also run **Actions → Publish debug APK → Run workflow**.
+
+Fallback copy in the tree: [apk/Sharter-dev-arm64-v8a.apk](apk/Sharter-dev-arm64-v8a.apk) (**Download raw file**).
 
 ## Build
 

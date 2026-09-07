@@ -1,0 +1,58 @@
+name: Publish debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+
+# Attach APKs to a GitHub Release. Actions artifacts 404 in the browser
+# on this private repo; Releases are a normal download for collaborators.
+permissions:
+  contents: write
+
+jobs:
+  assemble-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: tools platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Assemble debug APK
+        run: |
+          cd Kuroba
+          chmod +x ./gradlew
+          ./gradlew :app:assembleDebug -PbuildType=2 --stacktrace -Dorg.gradle.jvmargs="-Xmx4096m"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: debug-apk
+          name: Sharter debug APK
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+          files: |
+            Kuroba/app/build/outputs/apk/debug/Sharter-dev-arm64-v8a.apk
+            Kuroba/app/build/outputs/apk/debug/Sharter-dev.apk
+          body: |
+            Sideload **Sharter-dev-arm64-v8a.apk** on a modern phone.
+            `Sharter-dev.apk` is a universal fallback.
+
+            Debug-signed as `com.sharter.android` (soyjak.st + 4chan).
+            Uninstall any other Sharter build first if install is blocked.
+
+            Built from `${{ github.sha }}` on `develop`.
+            Rebuilt on every push to `develop`, or via Actions → Publish debug APK → Run workflow.
