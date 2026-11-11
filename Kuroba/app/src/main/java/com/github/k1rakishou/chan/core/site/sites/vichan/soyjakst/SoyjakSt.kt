@@ -63,6 +63,14 @@ class SoyjakSt : BaseVichanSite(
     ): HttpUrl {
       requireNotNull(arg)
 
+      // A spoiler-flagged file must never resolve to its real thumbnail, or the
+      // image is visible in the catalog/thread list (ChanPostImage.getThumbnailUrl
+      // swaps in this URL when the spoiler is not revealed and relies on the site
+      // returning a generic placeholder).
+      if (spoiler) {
+        return spoilerPlaceholderUrl(root.url())
+      }
+
       return root.builder()
         .s(boardDescriptor.boardCode)
         .s("thumb")
@@ -115,6 +123,16 @@ class SoyjakSt : BaseVichanSite(
 
   companion object {
     const val SITE_NAME: String = "soyjak.st"
+
+    /**
+     * Vichan serves a single generic placeholder at /static/spoiler.png.
+     */
+    fun spoilerPlaceholderUrl(root: HttpUrl): HttpUrl {
+      return root.newBuilder()
+        .addPathSegment("static")
+        .addPathSegment("spoiler.png")
+        .build()
+    }
 
     /**
      * soyjak.st re-encodes still-image thumbs as webp.
