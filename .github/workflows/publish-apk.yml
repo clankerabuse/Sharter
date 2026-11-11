@@ -74,17 +74,21 @@ jobs:
             --stacktrace -Dorg.gradle.jvmargs="-Xmx4096m"
 
       - name: Collect APKs
+        id: apk
         run: |
           mkdir -p out
           cp Kuroba/app/build/outputs/apk/release/Sharter-arm64-v8a.apk out/
           cp Kuroba/app/build/outputs/apk/release/Sharter.apk out/
+          VERSION=$(grep -m1 '^\s*versionName = ' Kuroba/app/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
           ls -l out
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: Sharter ${{ github.sha }}
+          name: Sharter ${{ steps.apk.outputs.version }} (${{ steps.apk.outputs.sha }})
           prerelease: true
           make_latest: false
           fail_on_unmatched_files: true
@@ -95,8 +99,9 @@ jobs:
             Sideload **`Sharter-arm64-v8a.apk`** on a modern phone.
             `Sharter.apk` is a universal fallback.
 
-            Release build of `com.sharter.android`, signed with the project's
-            release key, built from `${{ github.sha }}` on `develop`.
+            Release build of `com.sharter.android`, ${{ steps.apk.outputs.version }},
+            signed with the project's release key, built from
+            `${{ steps.apk.outputs.sha }}` on `develop`.
 
             Coming from a `Sharter-dev` build (debug key), Android will refuse the
             update — uninstall the old app once, then install this.
