@@ -47,3 +47,6 @@ $RECYCLE.BIN/
 .DS_Store
 
 ndk
+# Sideload APKs are published as GitHub Releases, never committed
+apk/
+*.apk
