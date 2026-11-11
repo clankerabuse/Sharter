@@ -2,13 +2,17 @@ name: Publish APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ develop ]
+  # Only publish commits that passed detekt + unit tests: build.yml owns those,
+  # so chain off its completion instead of compiling in parallel with it.
+  workflow_run:
+    workflows: ["Build/Verify/Publish MR/Release"]
+    types: [completed]
+    branches: [develop]
 
 # Only the newest commit needs an APK; a queued push supersedes a running build.
 # Without this two pushes can race for the same release tag and one fails.
 concurrency:
-  group: publish-apk-${{ github.ref }}
+  group: publish-apk-${{ github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: true
 
 permissions:
@@ -16,10 +20,14 @@ permissions:
 
 jobs:
   publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
 
       - name: Set up JDK 21
