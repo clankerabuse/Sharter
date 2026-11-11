@@ -1,0 +1,108 @@
+name: Upstream sync
+
+# Sharter drifted three releases behind upstream once already. This keeps it
+# honest: weekly, merge K1rakishou/Kuroba-Experimental's develop into a branch
+# and either open a PR (clean) or an issue (conflicts, needs a human).
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+env:
+  UPSTREAM: K1rakishou/Kuroba-Experimental
+  BASE_BRANCH: develop
+  SYNC_BRANCH: upstream-sync
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: develop
+
+      - name: Merge upstream develop
+        id: merge
+        run: |
+          set -eu
+          git config user.name "sharter-upstream-sync"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream "https://github.com/${UPSTREAM}.git"
+          git fetch --no-tags upstream develop
+
+          if git merge-base --is-ancestor upstream/develop HEAD; then
+            echo "status=current" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BEHIND=$(git rev-list --count HEAD..upstream/develop)
+          echo "behind=${BEHIND}" >> "$GITHUB_OUTPUT"
+
+          git checkout -B "$SYNC_BRANCH"
+          if git merge --no-commit --no-ff upstream/develop; then
+            git commit -m "Merge upstream ${UPSTREAM} (${BEHIND} commits)"
+            echo "status=clean" >> "$GITHUB_OUTPUT"
+          else
+            git diff --name-only --diff-filter=U > "$RUNNER_TEMP/conflicts.txt" || true
+            git merge --abort || true
+            echo "status=conflict" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push branch and open PR
+        if: steps.merge.outputs.status == 'clean'
+        run: |
+          set -eu
+          git push --force-with-lease origin "$SYNC_BRANCH"
+          if [ -n "$(gh pr list --head "$SYNC_BRANCH" --state open --json number --jq '.[0].number')" ]; then
+            echo "PR already open, branch updated"
+            exit 0
+          fi
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$SYNC_BRANCH" \
+            --title "Merge upstream ${UPSTREAM}" \
+            --body "Automated sync: upstream \`develop\` is ${{ steps.merge.outputs.behind }} commits ahead and merged without conflicts.
+
+          Review the upstream changelog entries before merging, then merge normally — the push to \`$BASE_BRANCH\` runs CI and republishes the APK.
+
+          Note: PRs opened with \`GITHUB_TOKEN\` do not trigger workflows, so this PR shows no checks until it lands."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Open issue when the merge conflicts
+        if: steps.merge.outputs.status == 'conflict'
+        run: |
+          set -eu
+          TITLE="Upstream sync needs a human (${{ steps.merge.outputs.behind }} commits behind)"
+          if [ -n "$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number')" ]; then
+            echo "issue already open"
+            exit 0
+          fi
+          {
+            echo "Merging \`${UPSTREAM}\` \`develop\` into \`${BASE_BRANCH}\` conflicts."
+            echo
+            echo "Resolve locally:"
+            echo '```'
+            echo "git fetch https://github.com/${UPSTREAM}.git develop:upstream-develop"
+            echo "git checkout -b ${SYNC_BRANCH} ${BASE_BRANCH}"
+            echo "git merge upstream-develop"
+            echo '```'
+            echo
+            echo "Conflicted files:"
+            echo '```'
+            cat "$RUNNER_TEMP/conflicts.txt" 2>/dev/null || echo "(list unavailable)"
+            echo '```'
+          } > "$RUNNER_TEMP/issue.md"
+          gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/issue.md"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,100 @@
+name: Publish APK
+
+on:
+  workflow_dispatch:
+  # Only publish commits that passed detekt + unit tests: build.yml owns those,
+  # so chain off its completion instead of compiling in parallel with it.
+  workflow_run:
+    workflows: ["Build/Verify/Publish MR/Release"]
+    types: [completed]
+    branches: [develop]
+
+# Only the newest commit needs an APK; a queued push supersedes a running build.
+# Without this two pushes can race for the same release tag and one fails.
+concurrency:
+  group: publish-apk-${{ github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: tools platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE secret is missing. Add KEYSTORE, KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD before publishing."
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/sharter-release.jks"
+
+      # Stable build type (0), release-signed, split per ABI + universal.
+      - name: Assemble signed release APKs
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cd Kuroba
+          chmod +x ./gradlew
+          ./gradlew :app:assembleRelease \
+            -PbuildType=0 \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/sharter-release.jks" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            --stacktrace -Dorg.gradle.jvmargs="-Xmx4096m"
+
+      - name: Collect APKs
+        run: |
+          mkdir -p out
+          cp Kuroba/app/build/outputs/apk/release/Sharter-arm64-v8a.apk out/
+          cp Kuroba/app/build/outputs/apk/release/Sharter.apk out/
+          ls -l out
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Sharter ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+          files: |
+            out/Sharter-arm64-v8a.apk
+            out/Sharter.apk
+          body: |
+            Sideload **`Sharter-arm64-v8a.apk`** on a modern phone.
+            `Sharter.apk` is a universal fallback.
+
+            Release build of `com.sharter.android`, signed with the project's
+            release key, built from `${{ github.sha }}` on `develop`.
+
+            Coming from a `Sharter-dev` build (debug key), Android will refuse the
+            update — uninstall the old app once, then install this.

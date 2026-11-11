@@ -55,4 +55,13 @@ class SoyjakStThumbnailsTest {
     val url = "https://soyjak.st/soy/src/123abc.png".toHttpUrl()
     assertEquals(emptyList<okhttp3.HttpUrl>(), SoyjakSt.alternateThumbnailUrls(url))
   }
+
+  @Test
+  fun `spoiler thumbs resolve to the site placeholder, not the real thumb`() {
+    val root = "https://soyjak.st".toHttpUrl()
+    assertEquals(
+      "https://soyjak.st/static/spoiler.png",
+      SoyjakSt.spoilerPlaceholderUrl(root).toString()
+    )
+  }
 }
