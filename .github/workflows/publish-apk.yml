@@ -42,7 +42,9 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: tools platform-tools platforms;android-36 build-tools;36.0.0
+          # `tools` was removed from the SDK repository; installing it fails the
+          # whole step on current runner images.
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
 
       - name: Decode release keystore
         env:
