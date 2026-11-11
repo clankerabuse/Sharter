@@ -82,8 +82,17 @@ android {
         //            m -> Minor version
         //            p -> patch
         //            MmmPP
-        versionCode = 10347
-        versionName = "v1.3.47"
+        //
+        // Bumped by hand whenever something is published. The APK's versionCode is
+        // derived from the clock instead: minutes since epoch, so every build (local
+        // or CI) is strictly newer than the last one and a sideloaded update never
+        // trips Android's downgrade check. Pass -PversionCodeOverride=<n> for a
+        // reproducible build.
+        versionCode = project.findProperty("versionCodeOverride")
+            ?.toString()
+            ?.toIntOrNull()
+            ?: (System.currentTimeMillis() / 60_000L).toInt()
+        versionName = "v1.3.48"
 
         configurations.configureEach {
             resolutionStrategy {
