@@ -84,6 +84,14 @@ jobs:
           echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
           ls -l out
 
+      # action-gh-release reuses an existing tag without moving it, so without
+      # this the rolling `latest` ref stays pinned to whatever commit created
+      # the release the first time and silently drifts behind every publish.
+      - name: Move the rolling latest tag
+        run: |
+          git tag -f latest "$(git rev-parse HEAD)"
+          git push -f origin refs/tags/latest
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
