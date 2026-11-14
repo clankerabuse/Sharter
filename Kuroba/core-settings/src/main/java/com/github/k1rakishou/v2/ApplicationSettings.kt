@@ -537,7 +537,10 @@ class ApplicationSettings(
       if (applicationSettingsParameters.isTablet) {
         layoutMode = LayoutMode.Split
       } else {
-        layoutMode = LayoutMode.Slide
+        // Sharter fork: single-pane by default. Slide mode keeps a strip of the thread
+        // pane parked at the right edge of the catalog, which reads as a stray panel
+        // that never goes away while browsing. Phone mode is the plain single nav stack.
+        layoutMode = LayoutMode.Phone
       }
     }
 
