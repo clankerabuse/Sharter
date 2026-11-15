@@ -255,7 +255,6 @@ class ActivityModule {
     siteManager: SiteManager,
     boardManager: BoardManager,
     compositeCatalogManager: CompositeCatalogManager,
-    kurobaAppUpdateManager: KurobaAppUpdateManager,
     postHideManager: PostHideManager,
     appSettingsUpdateAppRefreshHelper: AppSettingsUpdateAppRefreshHelper,
     fileChooser: FileChooser,
@@ -284,7 +283,6 @@ class ActivityModule {
       appResources = appResources,
       chanFilterManager = chanFilterManager,
       siteManager = siteManager,
-      kurobaAppUpdateManager = kurobaAppUpdateManager,
     )
     builders[SettingsScreenKey.Watchers] = WatcherSettingsScreenBuilder(
       kurobaSettings = kurobaSettings,

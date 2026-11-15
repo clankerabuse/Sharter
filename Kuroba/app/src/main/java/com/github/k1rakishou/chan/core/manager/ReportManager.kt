@@ -206,6 +206,11 @@ class ReportManager(
   private suspend fun sendInternal(reportRequest: ReportRequest, issueNumber: Int? = null): ModularResult<Unit> {
     BackgroundUtils.ensureBackgroundThread()
 
+    if (!REPORTS_ENABLED) {
+      Logger.d(TAG, "sendInternal() reporting is disabled in this build")
+      return ModularResult.Error(IllegalStateException("Reporting is disabled in this build"))
+    }
+
     return ModularResult.Try {
       val json = try {
         gson.get().toJson(reportRequest)
@@ -298,6 +303,12 @@ class ReportManager(
 
   companion object {
     private const val TAG = "ReportManager"
+
+    // Sharter fork: reports are not sent anywhere. The upstream endpoint lives in a repo we
+    // do not control and expects a hardcoded GitHub token (a credential we deliberately do
+    // not ship), so this path would only ever produce a 401. Kept as a flag so the rest of
+    // the flow stays compiled and reachable after an upstream merge.
+    private const val REPORTS_ENABLED = false
 
     const val MAX_TITLE_LENGTH = 512
     const val MAX_DESCRIPTION_LENGTH = 8192
