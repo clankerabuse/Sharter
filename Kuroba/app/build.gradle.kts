@@ -92,7 +92,7 @@ android {
             ?.toString()
             ?.toIntOrNull()
             ?: (System.currentTimeMillis() / 60_000L).toInt()
-        versionName = "v1.3.48"
+        versionName = "v1.3.49"
 
         configurations.configureEach {
             resolutionStrategy {

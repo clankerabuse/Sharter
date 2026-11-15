@@ -36,7 +36,7 @@
 
     <application
         android:name="com.github.k1rakishou.chan.Chan"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="${iconLoc}"
         android:roundIcon="${iconLoc}_round"
         android:label="${appName}"
@@ -168,7 +168,7 @@
 
         <receiver
             android:name=".core.receiver.DiagnosticsBroadcastReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.github.k1rakishou.chan.perform_thread_stack_dump"/>
             </intent-filter>

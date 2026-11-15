@@ -5,7 +5,6 @@ import com.github.k1rakishou.chan.BuildConfig
 import com.github.k1rakishou.chan.R
 import com.github.k1rakishou.chan.core.manager.ChanFilterManager
 import com.github.k1rakishou.chan.core.manager.SiteManager
-import com.github.k1rakishou.chan.core.manager.update.KurobaAppUpdateManager
 import com.github.k1rakishou.chan.features.changelog.ChangelogController
 import com.github.k1rakishou.chan.features.filters.FiltersController
 import com.github.k1rakishou.chan.features.report.bugs.ReportIssueController
@@ -25,8 +24,7 @@ class MainSettingsScreenBuilder(
   private val kurobaSettings: KurobaSettings,
   private val appResources: AppResources,
   private val chanFilterManager: ChanFilterManager,
-  private val siteManager: SiteManager,
-  private val kurobaAppUpdateManager: KurobaAppUpdateManager
+  private val siteManager: SiteManager
 ) : SettingsScreenBuilder {
 
   override suspend fun build(context: Context, settingActions: SettingActions, settingsScreen: SettingsScreen) {
@@ -173,25 +171,9 @@ class MainSettingsScreenBuilder(
         SettingUiElement.Link(
           composeKey = KurobaSettingKey.Application.AppUpdate.raw,
           title = { createAppVersionString() },
-          description = {
-            if (AppModuleAndroidUtils.isDevBuild || AppModuleAndroidUtils.isFdroidBuild) {
-              appResources.string(R.string.settings_updates_are_disabled)
-            } else {
-              appResources.string(R.string.settings_update_check)
-            }
-          },
+          description = { appResources.string(R.string.settings_updates_are_disabled) },
           callback = {
-            when {
-              AppModuleAndroidUtils.isDevBuild -> {
-                settingActions.showToast(appResources.string(R.string.updater_is_disabled_for_dev_builds))
-              }
-              AppModuleAndroidUtils.isFdroidBuild -> {
-                settingActions.showToast(appResources.string(R.string.updater_is_disabled_for_fdroid_builds))
-              }
-              else -> {
-                kurobaAppUpdateManager.manualUpdateCheck()
-              }
-            }
+            settingActions.showToast(appResources.string(R.string.settings_updates_are_disabled))
           }
         )
       )
@@ -227,7 +209,7 @@ class MainSettingsScreenBuilder(
           composeKey = "FindAppOnGithub",
           title = { appResources.string(R.string.settings_find_app_on_github, AndroidUtils.applicationLabel) },
           description = { appResources.string(R.string.settings_find_app_on_github_bottom) },
-          callback = { settingActions.openUrl("https://github.com/K1rakishou/Kuroba-Experimental") }
+          callback = { settingActions.openUrl("https://github.com/clankerabuse/Sharter") }
         )
       )
 

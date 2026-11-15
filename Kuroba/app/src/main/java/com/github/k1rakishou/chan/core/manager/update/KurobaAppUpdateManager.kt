@@ -93,6 +93,11 @@ class KurobaAppUpdateManager(
     coroutineScope.launch {
       Logger.d(TAG, "autoUpdateCheck()")
 
+      if (!UPDATER_ENABLED) {
+        Logger.d(TAG, "autoUpdateCheck() updater is disabled in this fork")
+        return@launch
+      }
+
       if (AppModuleAndroidUtils.isDevBuild) {
         Logger.d(TAG, "autoUpdateCheck() Updater is disabled for dev builds!")
         return@launch
@@ -132,6 +137,11 @@ class KurobaAppUpdateManager(
   fun manualUpdateCheck() {
     coroutineScope.launch {
       Logger.d(TAG, "manualUpdateCheck()")
+
+      if (!UPDATER_ENABLED) {
+        Logger.d(TAG, "manualUpdateCheck() updater is disabled in this fork")
+        return@launch
+      }
 
       if (AppModuleAndroidUtils.isDevBuild) {
         Logger.d(TAG, "Updater is disabled for dev builds!")
@@ -670,5 +680,11 @@ class KurobaAppUpdateManager(
 
   companion object {
     private const val TAG = "UpdateManager"
+
+    // Sharter fork: never poll upstream KurobaEx releases. Their APKs are signed with a
+    // different key and can never install over this build, and our own rolling `latest`
+    // tag is a prerelease whose `Sharter-<abi>.apk` assets that parser cannot read, so a
+    // repointed URL would only turn a silent no-op into an error dialog.
+    private const val UPDATER_ENABLED = false
   }
 }
