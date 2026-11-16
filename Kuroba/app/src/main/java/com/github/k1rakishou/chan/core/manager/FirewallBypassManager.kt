@@ -51,6 +51,28 @@ class FirewallBypassManager(
     synchronized(hostLastTimeCheck) { hostLastTimeCheck.remove(domainOrHost) }
   }
 
+  /**
+   * The challenge screen reported success but the request that followed was rejected by Cloudflare again, so the
+   * clearance we stored is not being honored. Without this the host stays "recently checked" for
+   * [FIREWALL_CHECK_TIMEOUT_MS] and every request in that window is rejected instantly without ever re-opening the
+   * screen, which is what makes the Retry button look like it does nothing.
+   *
+   * Shortens the cooldown to [RETRY_AFTER_FAILED_BYPASS_MS] instead of clearing it outright, so a genuinely
+   * unsolvable challenge cannot spam the screen once per request.
+   * */
+  fun onBypassDidNotWork(urlToOpen: HttpUrl) {
+    val domainOrHost = urlToOpen.domainOrHost()
+
+    synchronized(hostLastTimeCheck) {
+      hostLastTimeCheck[domainOrHost] =
+        System.currentTimeMillis() - (FIREWALL_CHECK_TIMEOUT_MS - RETRY_AFTER_FAILED_BYPASS_MS)
+    }
+
+    Logger.debug(TAG) {
+      "onBypassDidNotWork('${urlToOpen}') retry allowed in ${RETRY_AFTER_FAILED_BYPASS_MS}ms for '${domainOrHost}'"
+    }
+  }
+
   fun onFirewallDetected(
     firewallType: FirewallType,
     urlToOpen: HttpUrl,
@@ -106,6 +128,7 @@ class FirewallBypassManager(
 
     rendezvousCoroutineExecutor.post {
       var success = false
+      var canceledByUser = false
 
       try {
         synchronized(firewallSiteInfoMap) {
@@ -145,11 +168,15 @@ class FirewallBypassManager(
           }
         }
 
-        success = webViewTaskManager.performWebViewTask(webViewTask).isSuccess
+        val taskResult = webViewTaskManager.performWebViewTask(webViewTask)
+        success = taskResult.isSuccess
+        // Backing out of the screen is not a failed check: do not hold the next attempt off for the whole cooldown,
+        // or pressing the Retry button right after a cancel does nothing at all.
+        canceledByUser = taskResult is WebViewTaskResult.Canceled
 
         Logger.debug(TAG) {
           "onFirewallDetected(${firewallType}, '${urlToOpen}') Waiting for result from " +
-                  "SiteFirewallBypassController... done, success: ${success}"
+                  "SiteFirewallBypassController... done, success: ${success}, canceledByUser: ${canceledByUser}"
         }
       } catch (error: Throwable) {
         Logger.error(TAG) {
@@ -164,7 +191,11 @@ class FirewallBypassManager(
             ?.onFinished(success)
 
           synchronized(hostLastTimeCheck) {
-            hostLastTimeCheck[domainOrHost] = System.currentTimeMillis()
+            if (canceledByUser) {
+              hostLastTimeCheck.remove(domainOrHost)
+            } else {
+              hostLastTimeCheck[domainOrHost] = System.currentTimeMillis()
+            }
           }
         }
       }
@@ -213,6 +244,7 @@ class FirewallBypassManager(
   companion object {
     private const val TAG = "FirewallBypassManager"
     private const val FIREWALL_CHECK_TIMEOUT_MS = 10_000L
+    private const val RETRY_AFTER_FAILED_BYPASS_MS = 3_000L
   }
 
 }

@@ -215,7 +215,9 @@ open class AppConstants(
   companion object {
     private const val TAG = "AppConstants"
 
-    const val CLOUDFLARE_INTERCEPTOR_FIREWALL_BYPASS_MAX_WAIT_TIME_MILLIS = 30_000L
+    // A challenge that needs a tap cannot be solved in 30 seconds of a request's patience, and the request is only
+    // parked while the user looks at the screen, so give it long enough not to give up mid-tap.
+    const val CLOUDFLARE_INTERCEPTOR_FIREWALL_BYPASS_MAX_WAIT_TIME_MILLIS = 120_000L
 
     // 10 percents of the app's available memory (not device's)
     private const val RAM_PERCENT_FOR_POSTS_CACHE = 10
