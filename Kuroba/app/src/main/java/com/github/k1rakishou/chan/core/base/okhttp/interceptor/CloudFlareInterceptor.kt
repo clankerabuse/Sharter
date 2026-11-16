@@ -86,6 +86,12 @@ class CloudFlareInterceptor(
 
     logRejectedRequest(response, request)
 
+    if (retrying) {
+      // We just came back from the check screen and Cloudflare still rejects the request, so the clearance we stored
+      // is not being honored. Let the next attempt open the screen again soon instead of failing instantly.
+      firewallBypassManager.onBypassDidNotWork(request.url)
+    }
+
     if (canShowCloudFlareBypassScreen(retrying, request)) {
       siteResolver.waitUntilInitialized()
 
