@@ -160,6 +160,7 @@ class CloudFlareTask(
       private const val TAG = "CloudFlareTaskWebViewClient"
       private const val RECHECK_DELAY_MS = 700L
       private const val MAX_RECHECK_ATTEMPTS = 200
+
       // ~3 seconds of polling before a titleless page is accepted with whatever cookie it has
       private const val TITLE_SETTLE_ATTEMPTS = 4
 
